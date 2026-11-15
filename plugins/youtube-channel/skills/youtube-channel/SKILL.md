@@ -63,7 +63,7 @@ Read it critically when it returns. If the topic is saturated and there's no ang
 
 ### 3. Script & storyboard — you
 
-Write `script.md` and `scenes.json` yourself; this is where quality is decided, so don't delegate it. Follow `references/production.md` for structure: a hook in the first 5 seconds (Shorts) or 15 seconds (long-form) that promises a payoff, retention beats every ~30–60 s, one idea per scene, a clear ending (no "that's it for today" fade-out). Stay in the channel's voice and tone. Every factual claim must trace back to `research.md`.
+Write `script.md` and `scenes.json` yourself; this is where quality is decided, so don't delegate it. If `channel.json → style.guide` names a file (e.g. `channel/style-guide.md`), read it first; its rules override the defaults here. Follow `references/production.md` for structure: a hook in the first 5 seconds (Shorts) or 15 seconds (long-form) that promises a payoff, retention beats every ~30–60 s, one idea per scene, a clear ending (no "that's it for today" fade-out). Stay in the channel's voice and tone. Every factual claim must trace back to `research.md`.
 
 ### 4. Produce — you, with scripts
 
@@ -76,7 +76,7 @@ Ratings from the model that made the video are worthless — it knows what it *m
 For round `r` = 1, 2, 3:
 
 1. `python scripts/review_pack.py renders/v<r>.mp4 --out review/r<r>` — extracts contact sheets, a dense look at the hook, the transcript, loudness/silence/black-frame stats.
-2. Spawn a **fresh** judge subagent with `model` = `models.judge` (default `"haiku"`), using the prompt in `references/judge-agent.md`. Fresh each round, so it doesn't grade on a curve; give it the previous round's must-fix list only so it can check those were fixed. It writes `judge-r<r>.json` with per-criterion scores, an overall score and concrete fixes.
+2. Spawn a **fresh** judge subagent with `model` = `models.judge` (default `"haiku"`), using the prompt in `references/judge-agent.md`. If the channel has a style guide, give the judge its path too and tell it to fail the render on any item in the guide's judge checklist. Fresh each round, so it doesn't grade on a curve; give it the previous round's must-fix list only so it can check those were fixed. It writes `judge-r<r>.json` with per-criterion scores, an overall score and concrete fixes.
 3. If `overall ≥ 8` and there are no `must_fix` items: copy that render to `renders/final.mp4` and move on.
 4. Otherwise, fix what the judge found — re-write, re-voice, re-cut, whatever it takes, not just cosmetic tweaks — render `v<r+1>.mp4` and go again.
 
