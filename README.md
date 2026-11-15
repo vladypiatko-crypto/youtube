@@ -1,5 +1,7 @@
 # YouTube channel skill for Claude
 
+> **New: [Cutroom](cutroom/)** — a code-to-video studio: live preview from code, draw notes on frames, and watch Claude fix them with its own cursor. `cd cutroom && node server.js my-film --open`
+
 A Claude Code skill that runs a YouTube channel end to end:
 
 1. **Setup (first time)** — Claude asks about niche, audience, format (Shorts / long / both), visual style, voice, tone, cadence and how comment replies should work — only the things you didn't already say — and saves it to `channel/channel.json`.

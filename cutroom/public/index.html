@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cutroom</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23e8833a'/%3E%3Cpath d='M11 9l13 7-13 7z' fill='%23161616'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="8"/><path d="M11 9l13 7-13 7z"/></svg></span>
+    <span class="brand-name">Cutroom</span>
+    <span class="sep">/</span>
+    <span id="project-title" class="project-title">…</span>
+    <span id="project-meta" class="project-meta"></span>
+  </div>
+  <div id="live-pill" class="live-pill"><i></i><span>Live preview · from code, no render</span></div>
+  <nav class="top-actions">
+    <button id="btn-code" class="ghost" title="Show code (⌘/Ctrl+E)"><svg viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg>Code</button>
+    <button id="btn-history" class="ghost" title="Undo a Claude run"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg>History</button>
+    <button id="btn-help" class="ghost" title="Shortcuts (?)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></svg></button>
+    <button id="btn-export" class="primary"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Export MP4</button>
+  </nav>
+</header>
+
+<main class="main" id="main">
+  <aside class="tools" id="tools">
+    <button data-tool="note" class="active" title="Note — click the frame (V)"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 2-3 6z"/></svg><span>Note</span></button>
+    <button data-tool="pen" title="Pen (P)"><svg viewBox="0 0 24 24"><path d="M4 20l4-1L19 8l-3-3L5 16zM14 7l3 3"/></svg><span>Pen</span></button>
+    <button data-tool="arrow" title="Arrow (A)"><svg viewBox="0 0 24 24"><path d="M5 19L19 5M10 5h9v9"/></svg><span>Arrow</span></button>
+    <button data-tool="box" title="Box (R)"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1"/></svg><span>Box</span></button>
+    <button data-tool="circle" title="Circle (E)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg><span>Circle</span></button>
+    <button data-tool="text" title="Text (T)"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg><span>Text</span></button>
+    <button data-tool="pin" title="Marker (M)"><svg viewBox="0 0 24 24"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2"/></svg><span>Marker</span></button>
+    <button data-tool="eraser" title="Eraser (X)"><svg viewBox="0 0 24 24"><path d="M16 4l5 5-9 9H7l-4-4zM11 20h10"/></svg><span>Eraser</span></button>
+    <div class="tool-sep"></div>
+    <label class="color-pick" title="Colour"><input type="color" id="color" value="#ff5a4f"><i id="color-dot"></i><span>Colour</span></label>
+    <button id="undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/></svg><span>Undo</span></button>
+    <button id="redo" title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5M20 9H10a6 6 0 0 0 0 12h3"/></svg><span>Redo</span></button>
+  </aside>
+
+  <section class="stage-col">
+    <div class="stage-wrap" id="stage-wrap">
+      <div class="stage" id="stage">
+        <canvas id="view"></canvas>
+        <canvas id="overlay"></canvas>
+        <div id="stage-flash" class="stage-flash"></div>
+        <div id="error-card" class="error-card hidden"></div>
+      </div>
+    </div>
+    <div class="transport">
+      <button id="t-start" class="icon" title="Start (Home)"><svg viewBox="0 0 24 24"><path d="M6 5v14M19 5l-9 7 9 7z"/></svg></button>
+      <button id="t-back" class="icon txt" title="Back 5s (J)">−5s</button>
+      <button id="t-prev" class="icon" title="Previous frame (←)"><svg viewBox="0 0 24 24"><path d="M17 5l-9 7 9 7zM7 5v14"/></svg></button>
+      <button id="t-play" class="play" title="Play / pause (Space)"><svg class="i-play" viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg><svg class="i-pause" viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+      <button id="t-next" class="icon" title="Next frame (→)"><svg viewBox="0 0 24 24"><path d="M7 5l9 7-9 7zM17 5v14"/></svg></button>
+      <button id="t-end" class="icon" title="End (End)"><svg viewBox="0 0 24 24"><path d="M18 5v14M5 5l9 7-9 7z"/></svg></button>
+      <div class="timecode"><span id="tc">0:00.00</span><i>·</i><span>frame <b id="fc">0</b></span></div>
+      <select id="speed" title="Playback speed"><option value="0.25">¼×</option><option value="0.5">½×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
+      <div class="section-btns">
+        <button id="sec-in" class="link" title="Section start (I)">[ Section start</button>
+        <button id="sec-out" class="link" title="Section end (O)">Section end ]</button>
+        <button id="sec-clear" class="link hidden" title="Clear section">✕</button>
+      </div>
+      <div class="spacer"></div>
+      <button id="t-loop" class="icon toggle" title="Loop (L)"><svg viewBox="0 0 24 24"><path d="M17 2l3 3-3 3M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 0 1-4 4H4"/></svg></button>
+      <button id="t-mute" class="icon toggle" title="Mute (U)"><svg viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+      <button id="t-cc" class="icon toggle on txt" title="Captions (C)">CC</button>
+      <select id="quality" title="Preview quality"><option value="1">Full</option><option value="0.5">Half</option></select>
+      <button id="add-note" class="outline" title="Add a note at this time (N)">+ Add note</button>
+    </div>
+  </section>
+
+  <section class="code-drawer" id="code-drawer">
+    <div class="code-head">
+      <select id="code-file"></select>
+      <label class="follow" title="Open the scene under the playhead"><input type="checkbox" id="code-follow" checked> follow playhead</label>
+      <span id="code-state" class="code-state"></span>
+      <button id="code-save" class="small" disabled>Save</button>
+      <button id="code-close" class="icon" title="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="code-body" id="code-body">
+      <div class="gutter" id="gutter"></div>
+      <div class="code-scroll" id="code-scroll">
+        <pre class="code-hl" id="code-hl"></pre>
+        <textarea id="code-input" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+        <div class="code-sel" id="code-sel"></div>
+        <div class="code-caret hidden" id="code-caret"></div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="side">
+    <div class="tabs" id="side-tabs">
+      <button data-tab="notes" class="active">Notes <span class="badge" id="notes-count">0</span></button>
+      <button data-tab="claude">Claude <span class="dot-run" id="claude-dot"></span></button>
+      <button data-tab="sounds">Sounds</button>
+    </div>
+
+    <div class="tab-pane active" data-pane="notes">
+      <div class="notes-filter">
+        <select id="notes-filter"><option value="open">Open</option><option value="all">All</option><option value="fixed">Fixed</option></select>
+        <span class="hint">Draw on the frame or press <kbd>N</kbd></span>
+      </div>
+      <div class="notes-list" id="notes-list"></div>
+      <div class="side-foot">
+        <button id="send-notes" class="send-btn" disabled>Send to Claude <span id="send-count">(0)</span></button>
+      </div>
+    </div>
+
+    <div class="tab-pane" data-pane="claude">
+      <div class="chat-head">
+        <span class="claude-mark"><svg viewBox="0 0 24 24"><path d="M12 2l1.6 6.2L20 6l-4.4 4.8L22 12l-6.4 1.2L20 18l-6.4-2.2L12 22l-1.6-6.2L4 18l4.4-4.8L2 12l6.4-1.2L4 6l6.4 2.2z"/></svg></span>
+        <span id="chat-title" class="chat-title">New conversation</span>
+        <select id="model" title="Model (uses your Claude subscription via Claude Code)">
+          <option value="default">Default model</option><option value="opus">Opus</option><option value="sonnet">Sonnet</option><option value="haiku">Haiku</option>
+        </select>
+        <button id="chat-new" class="icon" title="New conversation"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+      <div class="chat-log" id="chat-log"></div>
+      <div class="chat-compose">
+        <div class="ctx-chip" id="ctx-chip" title="Claude gets the playhead time and scene with your message — click to toggle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="ctx-text">0:00.00</span></div>
+        <textarea id="chat-input" rows="2" placeholder="Ask Claude to change anything… e.g. make the title glow pulse"></textarea>
+        <div class="chat-actions">
+          <label class="watch" title="Animate Claude's cursor while it works"><input type="checkbox" id="watch" checked> watch Claude work</label>
+          <button id="chat-stop" class="danger small hidden">Stop</button>
+          <button id="chat-send" class="primary small">Send <kbd>↵</kbd></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" data-pane="sounds">
+      <div class="sounds-list" id="sounds-list"></div>
+      <p class="hint pad">Sounds come from <code>project.json → audio</code>. Ask Claude to add, move or retime them.</p>
+    </div>
+  </aside>
+</main>
+
+<footer class="timeline" id="timeline">
+  <canvas id="tl"></canvas>
+  <div class="tl-hint">scroll to pan · ctrl/⌘+scroll to zoom · shift+drag to mark a section</div>
+</footer>
+
+<!-- Claude's cursor -->
+<div id="claude-cursor" class="claude-cursor hidden" aria-hidden="true">
+  <svg viewBox="0 0 28 28" class="ptr"><path d="M4 2l20 11-9 2.2L10.5 25z"/></svg>
+  <div class="cc-tag"><b>Claude</b><span id="cc-say"></span></div>
+  <div class="cc-ripple" id="cc-ripple"></div>
+</div>
+
+<!-- note composer -->
+<div id="composer" class="composer hidden">
+  <div class="composer-head"><span id="cmp-id">#?</span><i>·</i><span id="cmp-time">0:00.00</span><i>·</i>
+    <select id="cmp-kind"><option>visual</option><option>motion</option><option>timing</option><option>text</option><option>sound</option><option>other</option></select>
+  </div>
+  <textarea id="cmp-text" rows="3" placeholder="What should change?"></textarea>
+  <label id="cmp-range-row" class="cmp-range hidden"><input type="checkbox" id="cmp-range" checked> applies to section <span id="cmp-range-text"></span></label>
+  <div class="composer-actions">
+    <button id="cmp-cancel" class="ghost small">Cancel</button>
+    <button id="cmp-fix" class="outline small" title="Save and let Claude fix it now (Shift+Ctrl+Enter)">Save &amp; fix now</button>
+    <button id="cmp-save" class="primary small" title="Ctrl+Enter">Save note</button>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+<div id="toasts" class="toasts"></div>
+
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>
