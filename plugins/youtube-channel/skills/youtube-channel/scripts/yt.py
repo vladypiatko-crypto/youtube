@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """One tool for everything YouTube: sign-in check, upload, privacy, comments, analytics.
 
-  python yt.py status                                   # are we signed in? which channel? (no secrets printed)
+  python yt.py status [--link]                          # signed in? which channel? --link binds channel.json to it
   python yt.py upload VIDEO --meta publish.json [--privacy …] [--dry-run]
   python yt.py videos [--max 20]                        # recent uploads incl. private/scheduled, with stats
   python yt.py set-privacy VIDEO_ID private|unlisted|public [--publish-at 2026-11-20T17:00:00Z]
@@ -25,7 +25,7 @@ WRITABLE_STATUS = ("privacyStatus", "publishAt", "embeddable", "license", "publi
                    "selfDeclaredMadeForKids", "containsSyntheticMedia")
 
 
-def cmd_status() -> None:
+def cmd_status(link: bool) -> None:
     from common import load_channel, save_channel
     from yt_api import credential_source, my_channel, youtube
     src = credential_source()
@@ -34,16 +34,31 @@ def cmd_status() -> None:
                  "See references/setup.md → 'YouTube API credentials'.")
     ch = my_channel(youtube())
     cfg = load_channel()
-    if cfg and cfg.get("channel_id") != ch["id"]:
+    linked = cfg.get("channel_id")
+    if link and cfg:
         cfg["channel_id"] = ch["id"]
-        cfg["name"] = cfg.get("name") or ch["snippet"]["title"]
-        cfg["handle"] = cfg.get("handle") or ch["snippet"].get("customUrl")
         save_channel(cfg)
+        linked = ch["id"]
     st = ch["statistics"]
-    print(json.dumps({"signed_in": True, "credentials_from": src, "channel": ch["snippet"]["title"],
-                      "channel_id": ch["id"], "handle": ch["snippet"].get("customUrl"),
-                      "subscribers": st.get("subscriberCount"), "views": st.get("viewCount"),
-                      "videos": st.get("videoCount")}, indent=2, ensure_ascii=False))
+    out = {"signed_in": True, "credentials_from": src, "channel": ch["snippet"]["title"],
+           "channel_id": ch["id"], "handle": ch["snippet"].get("customUrl"),
+           "subscribers": st.get("subscriberCount"), "views": st.get("viewCount"), "videos": st.get("videoCount"),
+           "linked_channel_id": linked, "matches_channel_json": linked == ch["id"]}
+    if linked != ch["id"]:
+        out["warning"] = (f"Signed in as '{ch['snippet']['title']}', but channel.json is for '{cfg.get('name')}' "
+                          f"({linked or 'not linked yet'}). Confirm with the user, then run: yt.py status --link")
+    print(json.dumps(out, indent=2, ensure_ascii=False))
+
+
+def guard() -> None:
+    """Refuse write actions unless the signed-in channel is the one channel.json was linked to."""
+    from common import load_channel
+    from yt_api import my_channel, youtube
+    linked = load_channel().get("channel_id")
+    ch = my_channel(youtube())
+    if linked != ch["id"]:
+        sys.exit(f"Refusing: signed in as '{ch['snippet']['title']}' ({ch['id']}) but channel.json is linked to "
+                 f"{linked or 'no channel'}. Check with the user, then link it with: yt.py status --link")
 
 
 def cmd_videos(n: int) -> None:
@@ -138,13 +153,16 @@ def cmd_branding(path: str | None, dry_run: bool) -> None:
 def main() -> None:
     if len(sys.argv) > 1 and sys.argv[1] in DELEGATES:
         name = sys.argv[1]
+        if name == "upload" and "--dry-run" not in sys.argv or name == "comments" and sys.argv[2:3] in (["reply"], ["moderate"]):
+            guard()
         mod = __import__(DELEGATES[name])
         sys.argv = [f"yt.py {name}", *sys.argv[2:]]
         mod.main()
         return
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("status", help="check sign-in and show the channel")
+    st = sub.add_parser("status", help="check sign-in and show the channel")
+    st.add_argument("--link", action="store_true", help="link channel.json to the signed-in channel (ask the user first)")
     for name, mod in DELEGATES.items():
         sub.add_parser(name, help=f"see {mod}.py")
     v = sub.add_parser("videos", help="recent uploads with privacy + stats")
@@ -158,12 +176,15 @@ def main() -> None:
     br.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
     if args.cmd == "branding":
+        if not args.dry_run:
+            guard()
         cmd_branding(args.file, args.dry_run)
     elif args.cmd == "status":
-        cmd_status()
+        cmd_status(args.link)
     elif args.cmd == "videos":
         cmd_videos(args.max)
     elif args.cmd == "set-privacy":
+        guard()
         cmd_set_privacy(args.video_id, args.privacy, args.publish_at)
 
 
