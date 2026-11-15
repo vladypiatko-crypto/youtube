@@ -1,8 +1,30 @@
-# YouTube API credentials — never commit
-channel/.secrets/
-# Heavy render artifacts (remove these lines if you want them in git)
-channel/videos/*/renders/
-channel/videos/*/audio/
-channel/videos/*/review/
+# ── PRIVATE CHANNEL DATA — this repo is PUBLIC, never commit any of it ──
+# The whole channel/ folder (channel.json, ideas, history, comments, scripts,
+# videos, thumbnails, API secrets) stays local-only.
+channel/
+/channel
+**/channel/
+**/.secrets/
+client_secret*.json
+token.json
+*.token.json
+
+# Media files anywhere in the repo (videos, audio, renders, thumbnails)
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.m4a
+*.mp3
+*.wav
+*.aac
+*.flac
+*.srt
+*.vtt
+
+# Env / keys
+.env
+.env.*
+
 __pycache__/
 *.pyc

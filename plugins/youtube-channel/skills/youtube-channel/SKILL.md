@@ -29,6 +29,8 @@ Add `channel/.secrets/` to `.gitignore` the first time you create it. Large rend
 
 Scripts are in `scripts/` next to this file; every `python scripts/…` command in this skill means that path. Run them with the skill's virtualenv: `~/.claude/youtube-channel/venv/bin/python` (Windows: `%USERPROFILE%\.claude\youtube-channel\venv\Scripts\python.exe`). If it doesn't exist yet, run `bash scripts/setup.sh` (Windows: `powershell -ExecutionPolicy Bypass -File scripts/setup.ps1`) first. It installs ffmpeg, Python and the packages, and the `/yt-setup` command does the same. Run `python scripts/check_env.py` once per session before producing anything; it tells you what's installed (ffmpeg, TTS, API libraries, credentials) so you pick a production path that will actually work instead of discovering it halfway through.
 
+Everything that talks to YouTube goes through one entry point, `python scripts/yt.py` (`status`, `upload`, `videos`, `set-privacy`, `comments …`, `analytics summary`). It signs in from the `YT_CLIENT_ID` / `YT_CLIENT_SECRET` / `YT_REFRESH_TOKEN` environment variables (cloud sessions) or `channel/.secrets/token.json` (local). Run `yt.py status` before any upload, comment or analytics work. Write actions (upload, branding, set-privacy, comment replies/moderation) refuse to run unless the signed-in channel is the one linked in channel.json; if `status` warns about a mismatch, tell the user which channel the login belongs to and only run `yt.py status --link` once they confirm that's the right channel. Never print, log or commit the credential values.
+
 ## Decide what the user wants
 
 | The user says something like… | Go to |
@@ -61,7 +63,7 @@ Read it critically when it returns. If the topic is saturated and there's no ang
 
 ### 3. Script & storyboard — you
 
-Write `script.md` and `scenes.json` yourself; this is where quality is decided, so don't delegate it. Follow `references/production.md` for structure: a hook in the first 5 seconds (Shorts) or 15 seconds (long-form) that promises a payoff, retention beats every ~30–60 s, one idea per scene, a clear ending (no "that's it for today" fade-out). Stay in the channel's voice and tone. Every factual claim must trace back to `research.md`.
+Write `script.md` and `scenes.json` yourself; this is where quality is decided, so don't delegate it. If `channel.json → style.guide` names a file (e.g. `channel/style-guide.md`), read it first; its rules override the defaults here. Follow `references/production.md` for structure: a hook in the first 5 seconds (Shorts) or 15 seconds (long-form) that promises a payoff, retention beats every ~30–60 s, one idea per scene, a clear ending (no "that's it for today" fade-out). Stay in the channel's voice and tone. Every factual claim must trace back to `research.md`.
 
 ### 4. Produce — you, with scripts
 
@@ -74,7 +76,7 @@ Ratings from the model that made the video are worthless — it knows what it *m
 For round `r` = 1, 2, 3:
 
 1. `python scripts/review_pack.py renders/v<r>.mp4 --out review/r<r>` — extracts contact sheets, a dense look at the hook, the transcript, loudness/silence/black-frame stats.
-2. Spawn a **fresh** judge subagent with `model` = `models.judge` (default `"haiku"`), using the prompt in `references/judge-agent.md`. Fresh each round, so it doesn't grade on a curve; give it the previous round's must-fix list only so it can check those were fixed. It writes `judge-r<r>.json` with per-criterion scores, an overall score and concrete fixes.
+2. Spawn a **fresh** judge subagent with `model` = `models.judge` (default `"haiku"`), using the prompt in `references/judge-agent.md`. If the channel has a style guide, give the judge its path too and tell it to fail the render on any item in the guide's judge checklist. Fresh each round, so it doesn't grade on a curve; give it the previous round's must-fix list only so it can check those were fixed. It writes `judge-r<r>.json` with per-criterion scores, an overall score and concrete fixes.
 3. If `overall ≥ 8` and there are no `must_fix` items: copy that render to `renders/final.mp4` and move on.
 4. Otherwise, fix what the judge found — re-write, re-voice, re-cut, whatever it takes, not just cosmetic tweaks — render `v<r+1>.mp4` and go again.
 
@@ -88,7 +90,7 @@ Read `references/publishing.md` and write `publish.json` + `thumbnail.png`: 3 ti
 
 ### 7. Upload
 
-Show the user the publish pack and the final video path, then **ask before uploading** — publishing is public and hard to undo. On a yes, `scripts/yt_upload.py` uploads it as private with a scheduled `publishAt`, so it goes live at the chosen time and the user can still pull it before then. Without credentials, give them the files and the pack to paste in.
+Show the user the publish pack and the final video path, then **ask before uploading** — publishing is public and hard to undo. Exception: when `channel.json → upload_mode` is `"auto"` (the user chose that), upload without asking once the video passed the judge loop (8+, no must-fix), and report the link and scheduled time afterwards. Either way, on a yes, `scripts/yt_upload.py` uploads it as private with a scheduled `publishAt`, so it goes live at the chosen time and the user can still pull it before then. Without credentials, give them the files and the pack to paste in.
 
 Append a line to `channel/history.jsonl` and remove the topic from `ideas.md`.
 
