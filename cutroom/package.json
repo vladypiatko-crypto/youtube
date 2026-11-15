@@ -1,0 +1,13 @@
+{
+  "name": "cutroom",
+  "version": "0.1.0",
+  "description": "Code-to-video studio: live preview from code, draw notes on frames, and let Claude fix them while you watch.",
+  "type": "module",
+  "bin": { "cutroom": "server.js" },
+  "scripts": {
+    "start": "node server.js",
+    "demo": "node server.js my-film"
+  },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}

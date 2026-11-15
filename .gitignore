@@ -6,3 +6,7 @@ channel/videos/*/audio/
 channel/videos/*/review/
 __pycache__/
 *.pyc
+# Cutroom working projects
+cutroom/my-film/
+**/.cutroom/history/
+**/exports/*.mp4

@@ -1,0 +1,23 @@
+{
+  "title": "The Last Keeper",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "background": "#05070d",
+  "scenes": [
+    { "id": "title", "name": "Title", "file": "scenes/title.js", "duration": 5, "color": "#6d5dfc" },
+    { "id": "sea", "name": "Night sea", "file": "scenes/sea.js", "duration": 7, "color": "#2f8fd8" },
+    { "id": "storm", "name": "Storm", "file": "scenes/storm.js", "duration": 6, "color": "#d8572f", "fade": 0.4 },
+    { "id": "dawn", "name": "Dawn", "file": "scenes/dawn.js", "duration": 6, "color": "#e3a83b", "fade": 0.6 }
+  ],
+  "captions": [
+    { "start": 5.4, "end": 8.6, "text": "Every night for forty years, he climbed the same 212 steps." },
+    { "start": 8.9, "end": 11.8, "text": "One light. One job. Keep the ships off the rocks." },
+    { "start": 12.3, "end": 15.2, "text": "Then came the storm of '61." },
+    { "start": 15.5, "end": 17.8, "text": "The power died. The lamp did not." },
+    { "start": 18.6, "end": 21.6, "text": "By morning, every boat was home." }
+  ],
+  "audio": [
+    { "name": "Ocean", "file": "audio/ocean.mp3", "start": 0, "volume": 0.8, "fadeIn": 1.5 }
+  ]
+}
