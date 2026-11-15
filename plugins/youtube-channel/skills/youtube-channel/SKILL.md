@@ -29,6 +29,8 @@ Add `channel/.secrets/` to `.gitignore` the first time you create it. Large rend
 
 Scripts are in `scripts/` next to this file; every `python scripts/…` command in this skill means that path. Run them with the skill's virtualenv: `~/.claude/youtube-channel/venv/bin/python` (Windows: `%USERPROFILE%\.claude\youtube-channel\venv\Scripts\python.exe`). If it doesn't exist yet, run `bash scripts/setup.sh` (Windows: `powershell -ExecutionPolicy Bypass -File scripts/setup.ps1`) first. It installs ffmpeg, Python and the packages, and the `/yt-setup` command does the same. Run `python scripts/check_env.py` once per session before producing anything; it tells you what's installed (ffmpeg, TTS, API libraries, credentials) so you pick a production path that will actually work instead of discovering it halfway through.
 
+Everything that talks to YouTube goes through one entry point, `python scripts/yt.py` (`status`, `upload`, `videos`, `set-privacy`, `comments …`, `analytics summary`). It signs in from the `YT_CLIENT_ID` / `YT_CLIENT_SECRET` / `YT_REFRESH_TOKEN` environment variables (cloud sessions) or `channel/.secrets/token.json` (local). Run `yt.py status` before any upload, comment or analytics work. Never print, log or commit those values.
+
 ## Decide what the user wants
 
 | The user says something like… | Go to |

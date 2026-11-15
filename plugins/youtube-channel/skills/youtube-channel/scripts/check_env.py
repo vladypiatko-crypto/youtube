@@ -35,8 +35,13 @@ def main() -> None:
         lines.append(f"{ok if os.environ.get(k) else warn}{k:26} {why}")
     cd = channel_dir()
     lines.append(f"{ok if (cd / 'channel.json').exists() else warn}channel.json at {cd} {'' if (cd / 'channel.json').exists() else '(run setup)'}")
-    lines.append(f"{ok if (cd / '.secrets' / 'client_secret.json').exists() else warn}YouTube OAuth client file")
-    lines.append(f"{ok if (cd / '.secrets' / 'token.json').exists() else warn}YouTube token (upload/analytics/comments)")
+    env_creds = all(os.environ.get(k) for k in ("YT_CLIENT_ID", "YT_CLIENT_SECRET", "YT_REFRESH_TOKEN"))
+    tok = (cd / ".secrets" / "token.json").exists()
+    src = "YT_* environment variables" if env_creds else "channel/.secrets/token.json" if tok else \
+        "MISSING - set YT_CLIENT_ID/YT_CLIENT_SECRET/YT_REFRESH_TOKEN or run yt_auth.py"
+    lines.append(f"{ok if env_creds or tok else warn}YouTube sign-in (upload/analytics/comments): {src}")
+    if env_creds or tok:
+        lines.append("    verify it works with: python scripts/yt.py status")
     print("\n".join(lines))
     print("\nMissing something? Run scripts/setup.sh (Windows: scripts/setup.ps1) or /yt-setup.")
 
