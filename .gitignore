@@ -1,0 +1,8 @@
+# YouTube API credentials — never commit
+channel/.secrets/
+# Heavy render artifacts (remove these lines if you want them in git)
+channel/videos/*/renders/
+channel/videos/*/audio/
+channel/videos/*/review/
+__pycache__/
+*.pyc
