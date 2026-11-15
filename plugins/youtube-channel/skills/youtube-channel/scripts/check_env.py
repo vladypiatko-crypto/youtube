@@ -38,7 +38,7 @@ def main() -> None:
     lines.append(f"{ok if (cd / '.secrets' / 'client_secret.json').exists() else warn}YouTube OAuth client file")
     lines.append(f"{ok if (cd / '.secrets' / 'token.json').exists() else warn}YouTube token (upload/analytics/comments)")
     print("\n".join(lines))
-    print("\nInstall missing Python bits: pip install -r scripts/requirements.txt")
+    print("\nMissing something? Run scripts/setup.sh (Windows: scripts/setup.ps1) or /yt-setup.")
 
 
 if __name__ == "__main__":

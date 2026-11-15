@@ -27,7 +27,7 @@ channel/
 
 Add `channel/.secrets/` to `.gitignore` the first time you create it. Large renders and assets are also worth ignoring (`channel/videos/*/renders/`, `*/assets/`, `*/audio/`) unless the user wants them in git.
 
-Scripts are in `scripts/` next to this file; every `python scripts/…` command in this skill means that path. Run them with the skill's own virtualenv when it exists (the installer creates it): `<skill dir>/.venv/bin/python` on macOS/Linux, `<skill dir>\.venv\Scripts\python.exe` on Windows. Otherwise use the system `python3`. Run `python scripts/check_env.py` once per session before producing anything; it tells you what's installed (ffmpeg, TTS, API libraries, credentials) so you pick a production path that will actually work instead of discovering it halfway through.
+Scripts are in `scripts/` next to this file; every `python scripts/…` command in this skill means that path. Run them with the skill's virtualenv: `~/.claude/youtube-channel/venv/bin/python` (Windows: `%USERPROFILE%\.claude\youtube-channel\venv\Scripts\python.exe`). If it doesn't exist yet, run `bash scripts/setup.sh` (Windows: `powershell -ExecutionPolicy Bypass -File scripts/setup.ps1`) first. It installs ffmpeg, Python and the packages, and the `/yt-setup` command does the same. Run `python scripts/check_env.py` once per session before producing anything; it tells you what's installed (ffmpeg, TTS, API libraries, credentials) so you pick a production path that will actually work instead of discovering it halfway through.
 
 ## Decide what the user wants
 

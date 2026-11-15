@@ -1,0 +1,13 @@
+{
+  "name": "youtube-tools",
+  "owner": { "name": "vladypiatko-crypto" },
+  "metadata": { "description": "Claude Code plugins for running a YouTube channel." },
+  "plugins": [
+    {
+      "name": "youtube-channel",
+      "source": "./plugins/youtube-channel",
+      "description": "Run a YouTube channel end to end: setup, research, video rendering, judge loop, publish pack, comments.",
+      "version": "1.0.0"
+    }
+  ]
+}

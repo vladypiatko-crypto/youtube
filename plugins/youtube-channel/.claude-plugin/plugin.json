@@ -1,0 +1,15 @@
+{
+  "name": "youtube-channel",
+  "version": "1.0.0",
+  "description": "Run a YouTube channel end to end: channel setup, topic research (cheap subagent), scripting and rendering videos, a judge subagent loop until 8+/10, title/description/tags/upload time, and comment management.",
+  "author": {
+    "name": "vladypiatko-crypto"
+  },
+  "icon": ".claude-plugin/icon.png",
+  "keywords": [
+    "youtube",
+    "video",
+    "shorts",
+    "content"
+  ]
+}

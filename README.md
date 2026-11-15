@@ -10,27 +10,36 @@ A Claude Code skill that runs a YouTube channel end to end:
 6. **Upload** — after you OK it, uploads as private + scheduled.
 7. **Channel management** — reads new comments, triages them, replies to the ones that matter in the channel's voice (you approve drafts, or `auto` mode), flags spam/business/sensitive stuff, and turns good comments into video ideas.
 
-## Install
+## Install (inside Claude Code)
 
-You need [git](https://git-scm.com/downloads) and a GitHub login with access to this repo. The installer adds ffmpeg and Python if they're missing, installs the skill for **all** your projects (`~/.claude/skills/youtube-channel`) with its own Python environment, and checks everything.
+The repo needs to be **public** for this to work without a GitHub login.
 
-**macOS / Linux:**
+1. Open Claude Code (`claude` in a terminal) and run:
+   ```
+   /plugin install youtube-channel --marketplace vladypiatko-crypto/youtube
+   ```
+   On an older Claude Code, use two steps: `/plugin marketplace add vladypiatko-crypto/youtube`, then `/plugin install youtube-channel@youtube-tools`.
+2. Restart Claude Code. Then, in the folder you want to use for your channel, run:
+   ```
+   /yt-setup
+   ```
+   This installs ffmpeg and the Python packages, then sets up your channel. It's a one-time thing.
 
-```bash
-git clone -b claude/vigilant-goldberg-uqym5w https://github.com/vladypiatko-crypto/youtube.git ~/youtube-skill && bash ~/youtube-skill/install.sh
-```
+Update later: `/plugin update youtube-channel`.
 
-**Windows (PowerShell):**
+## Commands
 
-```powershell
-git clone -b claude/vigilant-goldberg-uqym5w https://github.com/vladypiatko-crypto/youtube.git "$HOME\youtube-skill"; powershell -ExecutionPolicy Bypass -File "$HOME\youtube-skill\install.ps1"
-```
-
-Update later: `git -C ~/youtube-skill pull` and run the installer again.
+| Command | What it does |
+|---|---|
+| `/yt-setup` | install dependencies + set up / rebrand the channel |
+| `/yt-video [topic]` | make the next video (no topic → Claude suggests 3) |
+| `/yt-comments` | read new comments, reply to the ones that matter, flag the rest |
+| `/yt-stats` | how the channel is doing + what to make next |
+| `/youtube-channel` | the skill itself; plain language works too |
 
 ## Use
 
-Just talk to Claude:
+Use the commands above, or just talk to Claude:
 
 - "set up my channel — faceless space facts for teens, Shorts, chill vibe"
 - "make the next video"
@@ -43,9 +52,13 @@ Uploading, analytics and comments need a one-time Google sign-in; Claude walks y
 ## Layout
 
 ```
-.claude/skills/youtube-channel/
-├── SKILL.md                 # the workflow Claude follows
-├── references/              # setup, production, research/judge prompts, publishing, comments
-└── scripts/                 # assemble.py (render), tts.py, card.py, review_pack.py, yt_*.py (API)
-channel/                     # created on first run: your channel's config, ideas, videos, history
+.claude-plugin/marketplace.json          # makes this repo installable with /plugin
+plugins/youtube-channel/
+├── .claude-plugin/plugin.json
+├── commands/                            # /yt-setup, /yt-video, /yt-comments, /yt-stats
+└── skills/youtube-channel/
+    ├── SKILL.md                         # the workflow Claude follows
+    ├── references/                      # setup, production, research/judge prompts, publishing, comments
+    └── scripts/                         # setup.sh/.ps1, assemble.py (render), tts.py, card.py, review_pack.py, yt_*.py
+channel/                                 # created in your project on first run: config, ideas, videos, history
 ```

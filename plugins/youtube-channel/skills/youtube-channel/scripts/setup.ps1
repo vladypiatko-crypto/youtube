@@ -1,14 +1,12 @@
-# Installs the youtube-channel skill for Claude Code (Windows).
-# Usage: powershell -ExecutionPolicy Bypass -File install.ps1     (re-run any time to update)
+# Installs what the youtube-channel skill needs (Windows): Python 3.9+, ffmpeg, and a
+# virtualenv with the Python packages at ~/.claude/youtube-channel/venv. Safe to re-run.
 $ErrorActionPreference = "Stop"
 
-$Src  = Join-Path $PSScriptRoot ".claude\skills\youtube-channel"
-$Dest = Join-Path $HOME ".claude\skills\youtube-channel"
+$Venv = Join-Path $HOME ".claude\youtube-channel\venv"
 function Say($m) { Write-Host "`n==> $m" -ForegroundColor Magenta }
 function Warn($m) { Write-Host "!! $m" -ForegroundColor Yellow }
 function Refresh-Path { $env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [Environment]::GetEnvironmentVariable("Path","User") }
 
-if (-not (Test-Path "$Src\SKILL.md")) { throw "Can't find the skill at $Src - run this from the cloned repo." }
 $HasWinget = [bool](Get-Command winget -ErrorAction SilentlyContinue)
 
 Say "Checking Python"
@@ -36,34 +34,14 @@ if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
 }
 if (Get-Command ffmpeg -ErrorAction SilentlyContinue) { (ffmpeg -version)[0] } else { Warn "ffmpeg installed - open a NEW terminal so it's on PATH." }
 
-Say "Installing the skill to $Dest"
-New-Item -ItemType Directory -Force -Path (Split-Path $Dest) | Out-Null
-$Tmp = Join-Path $HOME ".claude\.yt-venv-tmp"
-if (Test-Path "$Dest\.venv") { Move-Item "$Dest\.venv" $Tmp -Force }
-if (Test-Path $Dest) { Remove-Item $Dest -Recurse -Force }
-Copy-Item $Src $Dest -Recurse
-if (Test-Path $Tmp) { Move-Item $Tmp "$Dest\.venv" -Force }
-Get-ChildItem $Dest -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
-
 Say "Installing Python packages (in the skill's own virtualenv)"
-$VPy = "$Dest\.venv\Scripts\python.exe"
-if (-not (Test-Path $VPy)) { & $Py -m venv "$Dest\.venv" }
+$VPy = "$Venv\Scripts\python.exe"
+New-Item -ItemType Directory -Force -Path (Split-Path $Venv) | Out-Null
+if (-not (Test-Path $VPy)) { & $Py -m venv $Venv }
 & $VPy -m pip install -q --upgrade pip
-& $VPy -m pip install -q -r "$Dest\scripts\requirements.txt"
+& $VPy -m pip install -q -r "$PSScriptRoot\requirements.txt"
 
 Say "Environment check"
-& $VPy "$Dest\scripts\check_env.py"
+& $VPy "$PSScriptRoot\check_env.py"
 
-Say "Claude Code"
-if (Get-Command claude -ErrorAction SilentlyContinue) { Write-Host "Found Claude Code." }
-else { Warn "Claude Code isn't installed yet. Install it with:"; Write-Host "    irm https://claude.ai/install.ps1 | iex" }
-
-Write-Host @"
-
-Done! The skill is installed for every project.
-
-Next:
-  1. mkdir ~\my-channel; cd ~\my-channel
-  2. claude
-  3. Say: "set up my channel" (or describe it: "faceless space facts for teens, Shorts, chill vibe")
-"@ -ForegroundColor Green
+Write-Host "`nSetup done. Python for the skill: $VPy" -ForegroundColor Green
