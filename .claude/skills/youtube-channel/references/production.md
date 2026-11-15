@@ -31,6 +31,8 @@ Format `script.md` as numbered scenes: narration text + what's on screen. This b
 }
 ```
 
+- `text` is what gets spoken. Write numbers and names the way they should sound ("thirteen point eight billion"). Add `"caption": "13.8 billion years old"` when the on-screen words should differ, so captions and graphics match.
+- One static card for a whole scene is the #1 thing the judge flags. Change the picture every 2–4 s on Shorts (split a scene into several visuals or use a clip). Show the topic itself, not just text on a gradient. Every item on screen should also be spoken.
 - Paths are relative to the scenes.json file.
 - A scene lasts as long as its audio + `padding`; scenes without audio need `duration`.
 - `visual` is an image (png/jpg, gets `motion`: `zoom_in`, `zoom_out`, `pan_left`, `pan_right`, `none`) or a video clip (trimmed or looped to fit).
