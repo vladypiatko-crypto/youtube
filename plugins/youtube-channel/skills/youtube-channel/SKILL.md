@@ -90,7 +90,7 @@ Read `references/publishing.md` and write `publish.json` + `thumbnail.png`: 3 ti
 
 ### 7. Upload
 
-Show the user the publish pack and the final video path, then **ask before uploading** — publishing is public and hard to undo. On a yes, `scripts/yt_upload.py` uploads it as private with a scheduled `publishAt`, so it goes live at the chosen time and the user can still pull it before then. Without credentials, give them the files and the pack to paste in.
+Show the user the publish pack and the final video path, then **ask before uploading** — publishing is public and hard to undo. Exception: when `channel.json → upload_mode` is `"auto"` (the user chose that), upload without asking once the video passed the judge loop (8+, no must-fix), and report the link and scheduled time afterwards. Either way, on a yes, `scripts/yt_upload.py` uploads it as private with a scheduled `publishAt`, so it goes live at the chosen time and the user can still pull it before then. Without credentials, give them the files and the pack to paste in.
 
 Append a line to `channel/history.jsonl` and remove the topic from `ideas.md`.
 

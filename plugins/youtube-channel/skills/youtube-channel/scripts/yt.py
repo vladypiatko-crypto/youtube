@@ -7,6 +7,7 @@
   python yt.py set-privacy VIDEO_ID private|unlisted|public [--publish-at 2026-11-20T17:00:00Z]
   python yt.py comments list|reply|mark|moderate …      # see yt_comments.py
   python yt.py analytics summary [--videos 30] [--tz …]   # see yt_analytics.py
+  python yt.py branding [--dry-run]                     # description, keywords, banner from channel/branding/branding.json
 
 Credentials: YT_CLIENT_ID / YT_CLIENT_SECRET / YT_REFRESH_TOKEN environment variables (cloud), or
 channel/.secrets/token.json (local). Neither is ever written to git. See references/setup.md.
@@ -90,6 +91,50 @@ def cmd_set_privacy(video_id: str, privacy: str, publish_at: str | None) -> None
                       "publish_at": res["status"].get("publishAt")}, indent=2))
 
 
+def merged_branding(current: dict, b: dict) -> dict:
+    """channels.update resets brandingSettings fields we leave out, so start from the current values."""
+    bs = {"channel": dict(current.get("channel", {})), "image": dict(current.get("image", {}))}
+    if b.get("description"):
+        bs["channel"]["description"] = b["description"]
+    if b.get("keywords"):
+        bs["channel"]["keywords"] = b["keywords"]
+    if b.get("default_language"):
+        bs["channel"]["defaultLanguage"] = b["default_language"]
+    if b.get("country"):
+        bs["channel"]["country"] = b["country"]
+    return bs
+
+
+def cmd_branding(path: str | None, dry_run: bool) -> None:
+    """Apply channel/branding/branding.json: description, keywords, language and banner image.
+    Profile picture, channel name and handle have no API; they're changed in YouTube Studio."""
+    from pathlib import Path
+    from common import channel_dir
+    f = Path(path) if path else channel_dir() / "branding" / "branding.json"
+    b = json.loads(f.read_text(encoding="utf-8"))
+    banner = (f.parent / b["banner"]) if b.get("banner") else None
+    if banner and not banner.exists():
+        sys.exit(f"banner not found: {banner}")
+    if dry_run:
+        print(json.dumps({"would_set": {k: b.get(k) for k in ("description", "keywords", "default_language", "country")},
+                          "banner": str(banner) if banner else None}, indent=2, ensure_ascii=False))
+        return
+    from googleapiclient.http import MediaFileUpload
+    from yt_api import youtube
+    yt = youtube()
+    ch = yt.channels().list(part="brandingSettings", mine=True).execute()["items"][0]
+    bs = merged_branding(ch.get("brandingSettings", {}), b)
+    result = {"channel_id": ch["id"]}
+    if banner:
+        up = yt.channelBanners().insert(media_body=MediaFileUpload(str(banner), mimetype="image/png")).execute()
+        bs["image"]["bannerExternalUrl"] = up["url"]
+        result["banner"] = "uploaded"
+    yt.channels().update(part="brandingSettings", body={"id": ch["id"], "brandingSettings": bs}).execute()
+    result.update(description="set", keywords="set",
+                  manual_in_studio="profile picture, channel name, handle (YouTube Studio → Customization)")
+    print(json.dumps(result, indent=2))
+
+
 def main() -> None:
     if len(sys.argv) > 1 and sys.argv[1] in DELEGATES:
         name = sys.argv[1]
@@ -108,8 +153,13 @@ def main() -> None:
     p.add_argument("video_id")
     p.add_argument("privacy", choices=["private", "unlisted", "public"])
     p.add_argument("--publish-at", help="RFC3339 UTC time; with private, YouTube publishes it then")
+    br = sub.add_parser("branding", help="apply description, keywords and banner from branding.json")
+    br.add_argument("--file", help="default: channel/branding/branding.json")
+    br.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
-    if args.cmd == "status":
+    if args.cmd == "branding":
+        cmd_branding(args.file, args.dry_run)
+    elif args.cmd == "status":
         cmd_status()
     elif args.cmd == "videos":
         cmd_videos(args.max)
