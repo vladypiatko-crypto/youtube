@@ -33,6 +33,16 @@ def edge_tts_save(text: str, voice: str, rate: str, out: Path) -> None:
         import edge_tts
     except ImportError:
         raise SystemExit("edge-tts not installed: pip install edge-tts")
+    # edge-tts pins certifi's CA list; behind a TLS-inspecting proxy (corporate networks, cloud sandboxes)
+    # also trust the bundle named by SSL_CERT_FILE / REQUESTS_CA_BUNDLE.
+    extra = os.environ.get("SSL_CERT_FILE") or os.environ.get("REQUESTS_CA_BUNDLE")
+    if extra and Path(extra).exists():
+        import ssl
+        import certifi
+        from edge_tts import communicate
+        ctx = ssl.create_default_context(cafile=certifi.where())
+        ctx.load_verify_locations(cafile=extra)
+        communicate._SSL_CTX = ctx
 
     async def go():
         await edge_tts.Communicate(text, voice, rate=rate or "+0%").save(str(out))
