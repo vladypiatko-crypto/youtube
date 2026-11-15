@@ -12,13 +12,21 @@ A Claude Code skill that runs a YouTube channel end to end:
 
 ## Install
 
-The skill lives in `.claude/skills/youtube-channel/`, so it's picked up automatically when you run Claude Code in this repo. To use it everywhere, copy that folder to `~/.claude/skills/`.
+You need [git](https://git-scm.com/downloads) and a GitHub login with access to this repo. The installer adds ffmpeg and Python if they're missing, installs the skill for **all** your projects (`~/.claude/skills/youtube-channel`) with its own Python environment, and checks everything.
+
+**macOS / Linux:**
 
 ```bash
-pip install -r .claude/skills/youtube-channel/scripts/requirements.txt
+git clone -b claude/vigilant-goldberg-uqym5w https://github.com/vladypiatko-crypto/youtube.git ~/youtube-skill && bash ~/youtube-skill/install.sh
 ```
 
-You also need `ffmpeg` (with libass for captions — most builds have it).
+**Windows (PowerShell):**
+
+```powershell
+git clone -b claude/vigilant-goldberg-uqym5w https://github.com/vladypiatko-crypto/youtube.git "$HOME\youtube-skill"; powershell -ExecutionPolicy Bypass -File "$HOME\youtube-skill\install.ps1"
+```
+
+Update later: `git -C ~/youtube-skill pull` and run the installer again.
 
 ## Use
 
